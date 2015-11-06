@@ -13,6 +13,32 @@ type UserController struct {
 	BaseController
 }
 
+// @Title 查询接口
+// @Description 根据关键字查询用户
+// @Param	key	query	string	false	"关键字"
+// @Success 200 {object} models.UserSearchModel
+// @Failure 400 请求的参数不正确
+// @router /search [get]
+func (this *UserController) Search() {
+	key := this.GetString("key", "")
+
+	if len(key) < 3 {
+		this.Data["json"] = map[string]interface{}{
+			"code": 1,
+			"msg":  "关键字过短",
+		}
+	} else {
+		users := models.SearchUser("%"+key+"%", 25)
+
+		this.Data["json"] = map[string]interface{}{
+			"code": 0,
+			"data": users,
+		}
+	}
+
+	this.ServeJson()
+}
+
 // @Title 添加一个新的用户
 // @Description 添加一个新的用户
 // @Param	body		body 	models.User	true		"用户信息"

@@ -64,6 +64,8 @@ func call(method string, args, reply interface{}) error {
 	if err != nil {
 		return err
 	}
+	defer client.Close()
+
 	err = client.Call(method, args, reply)
 	if err != nil {
 		return err

@@ -47,6 +47,71 @@ type TerminalCarrier struct {
 	ModifyOn                    time.Time `json:"modifyOn"`
 }
 
+type TerminalSearchModel struct {
+	TerminalId                  int64     `json:"id"`
+	TerminalSn                  string    `json:"sn"`
+	Tmsisdn                     string    `json:"-"`
+	Pmsisdn                     string    `json:"-"`
+	Imsi                        string    `json:"-"`
+	Imei                        string    `json:"-"`
+	ProductCode                 string    `json:"-"`
+	IsActivated                 int       `json:"-"`
+	Mileage                     int64     `json:"-"` // 记录里程
+	LicensePlateNumber          string    `json:"-"` // 车牌号
+	VehicleIdentificationNumber string    `json:"-"` // 车架号
+	CarrierType                 string    `json:"-"` // 载具类型
+	Brand                       string    `json:"-"` // 品牌
+	Color                       string    `json:"-"`
+	Picture                     string    `json:"-"`
+	OfflineOn                   time.Time `json:"offlineOn"`
+	OnlineOn                    time.Time `json:"onlineOn"`
+
+	SearchType string `json:"search_type"`
+}
+
+func SearchTerminal(key string, limit int) *[]TerminalSearchModel {
+	var terminals []TerminalSearchModel
+	// 获取 QueryBuilder 对象. 需要指定数据库驱动参数。
+	// 第二个返回值是错误对象，在这里略过
+	qb, _ := orm.NewQueryBuilder("mysql")
+
+	// 构建查询对象
+	qb.Select(
+		"terminal.id terminal_id",
+		"terminal.offline_on",
+		"terminal.online_on",
+		"terminal_profile.*",
+		"terminal_carrier.*",
+		"terminal.terminal_sn",
+	).
+		From(
+		"terminal",
+	).
+		InnerJoin(
+		"terminal_profile",
+	).
+		On(
+		"terminal.terminal_profile_id = terminal_profile.id",
+	).
+		InnerJoin(
+		"terminal_carrier",
+	).
+		On(
+		"terminal.terminal_carrier_id = terminal_carrier.id",
+	).
+		Where("terminal.terminal_sn like ?").
+		Limit(limit).Offset(0)
+
+	// 导出SQL语句
+	sql := qb.String()
+
+	// 执行SQL语句
+	o := orm.NewOrm()
+	o.Raw(sql, key).QueryRows(&terminals)
+
+	return &terminals
+}
+
 func AddTerminal(obj Terminal) (int64, error) {
 	var id int64
 	var profileId int64

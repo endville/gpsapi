@@ -11,6 +11,32 @@ type TerminalController struct {
 	BaseController
 }
 
+// @Title 查询接口
+// @Description 根据关键字查询终端
+// @Param	key	query	string	false	"关键字"
+// @Success 200 {object} models.TerminalSearchModel
+// @Failure 400 请求的参数不正确
+// @router /search [get]
+func (this *TerminalController) Search() {
+	key := this.GetString("key", "")
+
+	if len(key) < 3 {
+		this.Data["json"] = map[string]interface{}{
+			"code": 1,
+			"msg":  "关键字过短",
+		}
+	} else {
+		terminals := models.SearchTerminal("%"+key+"%", 25)
+
+		this.Data["json"] = map[string]interface{}{
+			"code": 0,
+			"data": terminals,
+		}
+	}
+
+	this.ServeJson()
+}
+
 // @Title 添加一个新的终端
 // @Description 添加一个新的终端
 // @Param	body		body 	models.Terminal	true		"终端信息"

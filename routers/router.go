@@ -13,6 +13,11 @@ import (
 
 func init() {
 	ns := beego.NewNamespace("/v1",
+		beego.NSNamespace("/resource",
+			beego.NSInclude(
+				&controllers.ResourceController{},
+			),
+		),
 		beego.NSNamespace("/group",
 			beego.NSInclude(
 				&controllers.GroupController{},

@@ -27,6 +27,50 @@ type GroupProfile struct {
 	ModifyOn      time.Time `json:"modifyOn"`
 }
 
+type GroupSearchModel struct {
+	GroupId       int64  `json:"id"`
+	GroupName     string `json:"name"`
+	GroupRealName string `json:"realname"`
+	ContactName   string `json:"contact"`
+	ContactPhone  string `json:"phone"`
+
+	SearchType string `json:"search_type"`
+}
+
+func SearchGroup(key string, limit int) *[]GroupSearchModel {
+	var groups []GroupSearchModel
+	// 获取 QueryBuilder 对象. 需要指定数据库驱动参数。
+	// 第二个返回值是错误对象，在这里略过
+	qb, _ := orm.NewQueryBuilder("mysql")
+
+	// 构建查询对象
+	qb.Select(
+		"`group`.id group_id",
+		"`group`.group_name",
+		"group_profile.*",
+	).
+		From(
+		"`group`",
+	).
+		InnerJoin(
+		"group_profile",
+	).
+		On(
+		"`group`.group_profile_id = group_profile.id",
+	).
+		Where("`group`.group_name like ? or group_profile.group_real_name like ? or group_profile.contact_phone like ? or group_profile.contact_name like ?").
+		Limit(limit).Offset(0)
+
+	// 导出SQL语句
+	sql := qb.String()
+
+	// 执行SQL语句
+	o := orm.NewOrm()
+	o.Raw(sql, key, key, key, key).QueryRows(&groups)
+
+	return &groups
+}
+
 func AddGroup(obj Group) (int64, error) {
 	var id int64
 	var profileId int64

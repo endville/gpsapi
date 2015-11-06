@@ -28,6 +28,54 @@ type UserProfile struct {
 	ModifyOn  time.Time `json:"modifyOn"`
 }
 
+type UserSearchModel struct {
+	UserId    int64  `json:"id"`
+	UserName  string `json:"username"`
+	Identity  string `json:"identity"` //身份证号
+	RealName  string `json:"realname"` //真实姓名
+	Gender    int    `json:"-"`        //性别
+	Address   string `json:"-"`
+	Email     string `json:"-"`
+	Phone     string `json:"phone"`
+	SimNumber string `json:"-"`
+
+	SearchType string `json:"search_type"`
+}
+
+func SearchUser(key string, limit int) *[]UserSearchModel {
+	var users []UserSearchModel
+	// 获取 QueryBuilder 对象. 需要指定数据库驱动参数。
+	// 第二个返回值是错误对象，在这里略过
+	qb, _ := orm.NewQueryBuilder("mysql")
+
+	// 构建查询对象
+	qb.Select(
+		"user.id user_id",
+		"user.user_name",
+		"user_profile.*",
+	).
+		From(
+		"user",
+	).
+		InnerJoin(
+		"user_profile",
+	).
+		On(
+		"user.user_profile_id = user_profile.id",
+	).
+		Where("user_profile.identity like ? or user_profile.real_name like ? or user.user_name like ? or user_profile.phone like ?").
+		Limit(limit).Offset(0)
+
+	// 导出SQL语句
+	sql := qb.String()
+
+	// 执行SQL语句
+	o := orm.NewOrm()
+	o.Raw(sql, key, key, key, key).QueryRows(&users)
+
+	return &users
+}
+
 func AddUser(obj User) (int64, error) {
 	var id int64
 	var profileId int64

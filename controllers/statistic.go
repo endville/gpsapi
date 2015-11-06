@@ -47,9 +47,9 @@ func (this *StatisticController) Terminal() {
 	case STATISTIC_DEVICE_TYPE_ALL:
 		where = ""
 	case STATISTIC_DEVICE_TYPE_MOVING:
-		where = ""
+		where = "where t.online_on >= t.offline_on"
 	case STATISTIC_DEVICE_TYPE_STAY:
-		where = ""
+		where = "where t.online_on >= t.offline_on"
 	case STATISTIC_DEVICE_TYPE_ONLINE:
 		where = "where t.online_on >= t.offline_on"
 	case STATISTIC_DEVICE_TYPE_OFFLINE:
@@ -105,12 +105,16 @@ func (this *StatisticController) Terminal() {
 // @router /terminalRunInfo [get]
 func (this *StatisticController) TerminalRunInfo() {
 	o := models.GetOrm()
-	gid, _ := this.GetInt("groupId")
-	tid, _ := this.GetInt("terminalId")
+	// gid, _ := this.GetInt("groupId")
+	// tid, _ := this.GetInt("terminalId")
 	timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
 	timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
 
-	sql := ""
+	pageIndex, _ := this.GetInt("pageIndex", 1)
+	pageSize, _ := this.GetInt("pageSize", 30)
+
+	sql := fmt.Sprintf("select terminal_id as id, terminal_sn as name, terminal.terminal_sn as terminal_sn, sum(mileage) as mileage from mileage, terminal where (record_on > '%s' and  record_on < '%s') and terminal_id = terminal.id group by terminal_id limit %d,%d", timeBegin, timeEnd, (pageIndex-1)*pageSize, pageSize)
+	// sqlTotal := fmt.Sprintf("select count(*) from mileage, terminal where (record_on > '%s' and  record_on < '%s') and terminal_id = terminal.id group by terminal_id", timeBegin, timeEnd)
 
 	var data []models.StatisticTerminalRunInfo
 	_, err := o.Raw(sql).QueryRows(&data)
@@ -139,10 +143,10 @@ func (this *StatisticController) TerminalRunInfo() {
 // @router /terminalMileage [get]
 func (this *StatisticController) TerminalMileage() {
 	o := models.GetOrm()
-	gid, _ := this.GetInt("groupId")
-	tid, _ := this.GetInt("terminalId")
-	timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
-	timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
+	// gid, _ := this.GetInt("groupId")
+	// tid, _ := this.GetInt("terminalId")
+	// timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
+	// timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
 
 	sql := ""
 
@@ -174,11 +178,11 @@ func (this *StatisticController) TerminalMileage() {
 // @router /terminalStay [get]
 func (this *StatisticController) TerminalStayInfo() {
 	o := models.GetOrm()
-	gid, _ := this.GetInt("groupId")
-	tid, _ := this.GetInt("terminalId")
-	timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
-	timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
-	minTime, _ := this.GetInt("minTime", 10)
+	// gid, _ := this.GetInt("groupId")
+	// tid, _ := this.GetInt("terminalId")
+	// timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
+	// timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
+	// minTime, _ := this.GetInt("minTime", 10)
 	sql := ""
 
 	var data []models.StatisticTerminalStay
@@ -209,10 +213,10 @@ func (this *StatisticController) TerminalStayInfo() {
 // @router /terminalWarning [get]
 func (this *StatisticController) TerminalWarning() {
 	o := models.GetOrm()
-	gid, _ := this.GetInt("groupId")
-	tid, _ := this.GetInt("terminalId")
-	timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
-	timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
+	// gid, _ := this.GetInt("groupId")
+	// tid, _ := this.GetInt("terminalId")
+	// timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
+	// timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
 	warningType, _ := this.GetInt("type", 0)
 
 	switch warningType {
@@ -248,9 +252,9 @@ func (this *StatisticController) TerminalWarning() {
 // @router /terminalOnline [get]
 func (this *StatisticController) TerminalOnline() {
 	o := models.GetOrm()
-	gid, _ := this.GetInt("groupId")
-	timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
-	timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
+	// gid, _ := this.GetInt("groupId")
+	// timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
+	// timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
 
 	sql := ""
 
@@ -280,9 +284,9 @@ func (this *StatisticController) TerminalOnline() {
 // @router /terminalOnlineDetails [get]
 func (this *StatisticController) TerminalOnlineDetails() {
 	o := models.GetOrm()
-	gid, _ := this.GetInt("groupId")
-	timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
-	timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
+	// gid, _ := this.GetInt("groupId")
+	// timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
+	// timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
 
 	sql := ""
 
@@ -313,10 +317,10 @@ func (this *StatisticController) TerminalOnlineDetails() {
 // @router /terminalOffline [get]
 func (this *StatisticController) TerminalOffline() {
 	o := models.GetOrm()
-	gid, _ := this.GetInt("groupId")
-	tid, _ := this.GetInt("terminalId")
-	timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
-	timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
+	// gid, _ := this.GetInt("groupId")
+	// tid, _ := this.GetInt("terminalId")
+	// timeBegin := this.GetString("timeBegin", time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:05"))
+	// timeEnd := this.GetString("timeEnd", time.Now().Format("2006-01-02 15:04:05"))
 
 	sql := ""
 
@@ -345,8 +349,8 @@ func (this *StatisticController) TerminalOffline() {
 // @router /terminalInfo [get]
 func (this *StatisticController) TerminalQuery() {
 	o := models.GetOrm()
-	gid, _ := this.GetInt("groupId")
-	tid, _ := this.GetInt("terminalId")
+	// gid, _ := this.GetInt("groupId")
+	// tid, _ := this.GetInt("terminalId")
 
 	sql := ""
 

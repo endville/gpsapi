@@ -38,6 +38,31 @@ func (this *GroupController) Post() {
 	this.ServeJson()
 }
 
+// @Title 查询接口
+// @Description 根据关键字查询车队
+// @Param	key	query	string	false	"关键字"
+// @Success 200 {object} models.GroupSearchModel
+// @Failure 400 请求的参数不正确
+// @router /search [get]
+func (this *GroupController) Search() {
+	key := this.GetString("key", "")
+
+	if len(key) < 3 {
+		this.Data["json"] = map[string]interface{}{
+			"code": 1,
+			"msg":  "关键字过短",
+		}
+	} else {
+		groups := models.SearchGroup("%"+key+"%", 25)
+		this.Data["json"] = map[string]interface{}{
+			"code": 0,
+			"data": groups,
+		}
+	}
+
+	this.ServeJson()
+}
+
 // @Title 获取车队列表
 // @Description 获取车队列表
 // @Param	pid	query	int	false	"父车队ID"
